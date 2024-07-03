@@ -1,0 +1,33 @@
+# Validate that all EC2 instances have instance_type in the allowed_types list
+validate_ec2_instance_types = func(allowed_types) {
+    validated = true
+    aws_instances = find_resources_from_plan("aws_instance")
+    for aws_instances as address, r {
+        # Determine if the attribute is computed
+        if r.diff["instance_type"].computed else false is true {
+            print("EC2 instance", address,
+                  "has attribute, instance_type, that is computed.")
+        } else {
+            # Validate that each instance has allowed value
+            if (r.applied.instance_type else "") not in allowed_types {
+                print("EC2 instance", address, "has instance_type",
+                    r.applied.instance_type, "that is not in the allowed list:",
+                    allowed_types)
+                validated = false
+            }
+        }
+    }
+    return validated
+}
+
+# Allowed Types
+allowed_types = [
+    "t2.small",
+    "t2.medium",
+    "t2.large",
+]
+
+# Main rule
+main = rule {
+    validate_ec2_instance_types(allowed_types)
+}
