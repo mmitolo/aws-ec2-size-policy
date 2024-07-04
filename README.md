@@ -1,0 +1,1 @@
+## TF training - Basic Sentinel policy to check instance type size
